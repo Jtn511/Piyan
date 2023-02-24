@@ -93,3 +93,6 @@
 2023-02-23 22:00:51 | Cx7#9314: 抱抱
 2023-02-23 22:14:00 | Cx7#9314: 👌
 2023-02-23 22:14:00 | piyan#0765: 好啥小
+2023-02-24 15:13:46 | Ayana#8911: Command cannot be executed. The following Discord permissions must be granted:
+```readMessages```
+2023-02-24 16:28:38 | Tatsu#8792: 
