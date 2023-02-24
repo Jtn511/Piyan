@@ -1,5 +1,0 @@
-2023-02-24 02:29:15 | Cx7#9314: 屁眼開關
-https://discord.com/api/oauth2/authorize?client_id=1043082295764078652&permissions=8&scope=bot
-2023-02-24 02:30:11 | Cx7#9314: 
-2023-02-24 13:20:53 | Tatsu#8792: 
-2023-02-24 13:21:07 | UselessBot#7219: 
