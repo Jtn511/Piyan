@@ -6,7 +6,6 @@ from random import randrange
 from pathlib import Path
 
 intents = discord.Intents.default()
-intents.dm_messages = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -18,8 +17,8 @@ def load(path):
         return json.load(f)
 
 async def announcement(string):
-    #channel = bot.get_channel(1016736583157821453)  # 這裡替換成你的頻道 ID
-    channel = bot.get_channel(1078382554400432242)  # 屁眼
+    channel = bot.get_channel(1016736583157821453)  # 這裡替換成你的頻道 ID
+    #channel = bot.get_channel(1078382554400432242)  # 屁眼
     await channel.send(string)
     return
 

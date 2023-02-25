@@ -24,7 +24,7 @@ async def responder(m):
 async def mentionLot(m, times):
     for i in range(times):
         await m.channel.send(m.author.mention)
-    await m.channel.send('很愛標?')
+    await m.reply('很愛標?')
 
 async def mentionBot(m, ans):
     try:
@@ -38,18 +38,10 @@ async def on_message(m):
     if m.author.bot or not m.guild:
         return
     
+    VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
     if '<@1043082295764078652>' in m.content: # 被標記
-        VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
-        call = m.content.split('1043082295764078652>')[1].strip().split(' ')[0]
-
-        commands_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/command_list/command_list.json'))
-        piyanText = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/command_list/reply_text.json'))
-        call_list = commands_list + list(piyanText.keys())
-
-        if call in call_list: # piyanCall 不在這
-            return
-        elif m.author.id in VIP:    # VIP 低聲下氣
-            await m.channel.send('怎麼ㄌ')
+        if m.author.id in VIP:    # VIP 低聲下氣
+            await m.channel.reply(['怎麼ㄌ', '老大請說', '主人，我在'])
         else:   # 非VIP 抽獎模式
             ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_ans.json'))
             await mentionBot(m, ans[randrange(len(ans))])
