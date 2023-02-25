@@ -3,9 +3,7 @@ from discord.ext import commands
 from random import randrange
 from pathlib import Path
 
-intents = discord.Intents.default()
-intents.dm_messages = True
-intents.message_content = True
+intents = discord.Intents.all()
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -14,7 +12,7 @@ def load(path):
     with open(path, 'r', encoding = 'utf8') as f:
         return json.load(f)
 
-async def responder(m):
+def responder(m):
     dictPath = Path('C:\\Users\\jtn91\\OneDrive\\桌面\\Piyan\\Data\\reply_dictionary', f'{m.guild.id}/dictionary.json')
     try:
         return (load(dictPath)).get(m.content)[0]
@@ -41,7 +39,8 @@ async def on_message(m):
     VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
     if '<@1043082295764078652>' in m.content: # 被標記
         if m.author.id in VIP:    # VIP 低聲下氣
-            await m.channel.reply(['怎麼ㄌ', '老大請說', '主人，我在'])
+            ans = ['怎麼ㄌ', '老大請說', '主人，我在']
+            await m.reply(ans[randrange(len(ans))])
         else:   # 非VIP 抽獎模式
             ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_ans.json'))
             await mentionBot(m, ans[randrange(len(ans))])
@@ -51,8 +50,5 @@ async def on_message(m):
         await m.reply(await responder(m))
 
 token = os.environ.get('DISCORD_BOT_TOKEN')
-
-if token is None:
-    print(token)
-else:
+if token:
     bot.run(token)

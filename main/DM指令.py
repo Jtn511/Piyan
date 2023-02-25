@@ -19,7 +19,8 @@ def load(path):
 async def announcement(string):
     channel = bot.get_channel(1016736583157821453)  # 這裡替換成你的頻道 ID
     #channel = bot.get_channel(1078382554400432242)  # 屁眼
-    await channel.send(string)
+    with open('announcement.png', 'rb') as f:
+        await channel.send(string, file=discord.File(f))
     return
 
 @bot.event
@@ -33,6 +34,7 @@ async def on_message(call):
                 r = call.reference.resolved 
                 if r:   # 回覆目標存在
                     await announcement(r.content)
+                    
                     
 
 token = os.environ.get('DISCORD_BOT_TOKEN')

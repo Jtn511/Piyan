@@ -4,7 +4,6 @@ from random import randrange
 from pathlib import Path
 
 intents = discord.Intents.default()
-intents.dm_messages = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
