@@ -1,7 +1,7 @@
 import discord, os, Piyan
 from discord import app_commands
 from discord.ext import commands
-from Piyan import load, Path
+from Piyan import load, Path, datetime
 from random import randrange
 
 bot = commands.Bot(command_prefix='!', intents= discord.Intents.all())
@@ -38,9 +38,9 @@ async def on_message(message):
         return
     
     VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
-    if '<@1043082295764078652>' in message.content: # 被標記
+    if str(bot.user.id) in message.content: # 被標記
         if message.author.id in VIP:    # VIP 低聲下氣
-            ans = ['怎麼ㄌ', '老大請說', '主人，我在']
+            ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_VIP.json'))
             await message.reply(ans[randrange(len(ans))])
         else:   # 非VIP 抽獎模式
             ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_ans.json'))
@@ -50,16 +50,21 @@ async def on_message(message):
     elif Piyan.responder(message):    # 字典回覆
         await message.reply(Piyan.responder(message))
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+@bot.event
+async def on_raw_reaction_add(reaction):
+    if reaction.emoji.name == '👾' and reaction.member.id in Piyan.VIP('VIP'):
+        channel = bot.get_channel(reaction.channel_id)  # 這裡替換成你的頻道 ID
+        message = await channel.fetch_message(reaction.message_id)  # 這裡替換成你要刪除的訊息 ID
+
+        await message.delete()
+        print(f'{message.guild}_{message.channel} | {message.author}: {message.content} -> removed')
+
+
+@bot.tree.command(name='p0yan功能', description='查看Piyan的功能列表')
+async def piyan(interaction: discord.Interaction):
+    await interaction.response.send_message(f'還沒寫 先假裝這是列表')
+
+
 @bot.tree.command(name='p1yan測試', description='點一下不吃虧啊')
 async def test(interaction: discord.Interaction):
     await interaction.response.send_message(f'{interaction.user.mention} 的屁演很新鮮，請安心使用。')
@@ -77,7 +82,13 @@ async def remove_reply(interaction: discord.Interaction, key: str):
     await interaction.response.send_message(Piyan.remove_reply(interaction, key))
 
 
-@bot.tree.command(name='p4yan關鍵字清單', description='太多了所以不想放回覆內容 好奇的自己試試就知道了')
+@bot.tree.command(name='p4yan查詢', description='看看是哪個王八蛋設的')
+@app_commands.describe(key= '輸入你要查的關鍵字')
+async def author_search(interaction: discord.Interaction, key: str):
+    await interaction.response.send_message(Piyan.author_search(interaction, key))
+
+
+@bot.tree.command(name='p5yan關鍵字清單', description='太多了所以不想放回覆內容 好奇的自己試試就知道了')
 async def list(interaction: discord.Interaction):
     try:
         await interaction.response.send_message(embed=Piyan.key_list(interaction), ephemeral=True)
@@ -85,12 +96,24 @@ async def list(interaction: discord.Interaction):
         await interaction.response.send_message('字太多了我還沒寫解決方案ㄟ')
 
 
+@bot.tree.command(name='p6yan代言人', description='幫你大聲說出來!')
+@app_commands.describe(say= '講出來')
+async def say(interaction: discord.Interaction, say: str):
+    Piyan.say(interaction, say)
+    await interaction.channel.send(say)
+    await interaction.response.send_message('俗辣不敢自己講喔', ephemeral= True)
 
 
-
-
-
-
+@bot.tree.command(name='p7yan轟炸機', description='轟炸尋人機 不要超過五次 會太吵')
+@app_commands.describe(target= '炸誰?', times= '炸幾次?')
+async def bomb(interaction: discord.Interaction, target: discord.Member, times: int):
+    await interaction.response.send_message(f'{interaction.user.mention} 對 {target.mention} 使用{times}次轟炸')
+    if times <= 5:
+        for i in range(times):
+            await interaction.channel.send(target.mention)
+        await interaction.channel.send('你家炸了 快出來')
+    else:
+        await interaction.channel.send('太貪心了吧 我不炸')
 
 
 token = os.getenv('DISCORD_BOT_TOKEN')

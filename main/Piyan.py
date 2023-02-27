@@ -1,9 +1,9 @@
-import json, discord
+import json, discord, requests
 from pathlib import Path
 from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
-import requests
+from random import randrange
 
 def load(path):
     if not path.exists():
@@ -18,9 +18,14 @@ def dump(data, path):
 
 def add_reply(interaction, key, reply):
     cant_add_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/cant_add/cant_add.json'))
+    black_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/black_list.json'))
     if key in cant_add_list:
+        print(f'{interaction.user.name} cannot add {key} to {reply}')
         return '笑死 還想改啊'
-    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{interaction.guild.id}/dictionary.json')
+    if interaction.user.id in black_list:
+        print(f'{interaction.user.name} cannot add {key} to {reply} (black list)')
+        return '李家豐鎖黑名單'
+    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/dictionary.json')
     dictPath.parent.mkdir(parents=True, exist_ok=True)
     
     try:
@@ -31,20 +36,23 @@ def add_reply(interaction, key, reply):
     dictionary[key] = [reply, f'{interaction.user}', interaction.user.id]
     dump(dictionary, dictPath)
 
-    dicTxt = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{interaction.guild.id}/{interaction.guild.name}.txt')
+    dicTxt = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/{interaction.guild.name}.txt')
     dicTxt.parent.mkdir(parents=True, exist_ok=True)
 
     with open(dicTxt, "w", encoding='utf-8') as f:    # 備份
         f.write(str(load(dictPath)).replace('{', '{\n').replace('}', '\n}').replace('], ', '], \n'))
 
-    return f'好ㄌ {key} >>> {reply}'
+    return f'好ㄌ:\t{key} >>> {reply}'
 
 def remove_reply(interaction, key):
     VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
-    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{interaction.guild.id}/dictionary.json')
+    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/dictionary.json')
     try:
         dictionary = load(dictPath)
-        reply, authorName, authorID = dictionary.get(key)
+        try:
+            reply, authorName, authorID = dictionary.get(key)
+        except ValueError:
+            return '笑死 還想刪啊'
         if interaction.user.id not in VIP:
             if interaction.user.id != authorID:   # 作者不符
                 print(f'{interaction.user} cannot remove {key} from {authorName}')
@@ -54,7 +62,7 @@ def remove_reply(interaction, key):
     
     del dictionary[key]
     dump(dictionary, dictPath)
-    dicTxt = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{interaction.guild.id}/{interaction.guild.name}.txt')
+    dicTxt = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/{interaction.guild.name}.txt')
     dicTxt.parent.mkdir(parents=True, exist_ok=True)
 
     with open(dicTxt, "w", encoding='utf-8') as f:    # 備份
@@ -63,9 +71,21 @@ def remove_reply(interaction, key):
 
     return f"好ㄌ:\t現在 {key} 跟我打的電話一樣無回應"
 
+def author_search(interaction, key):
+    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/dictionary.json')
+    try:
+        dictionary = load(dictPath)
+        try:
+            reply, authorName, authorID = dictionary.get(key)
+            return f'**{key}** 是 <@{authorID}> 設的ㄏㄏ'
+        except ValueError:
+            return '這太早了 我沒記到設定者'
+    except TypeError: # 沒檔案
+        return '沒東西阿 你是要查啥'
+
 def key_list(interaction):
 
-    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{interaction.guild.id}/dictionary.json')
+    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/dictionary.json')
     dictPath.parent.mkdir(parents=True, exist_ok=True)
 
     try: dictionary = load(dictPath)
@@ -73,27 +93,31 @@ def key_list(interaction):
 
     replyKey = ""
     #replyValue = ""
-    t = 5
+    num = ""
+    t = 0
     for i in dictionary:
-        if t:
-            replyKey += f"{i}\n"
-            #replyValue += f"{dictionary[i][0][:15]}\n"
+        t += 1
+        num += f'{t}\n'
+        replyKey += f"{i}\n"
+        #replyValue += f"{dictionary[i][0][:15]}\n"
 
     embedVar = discord.Embed(title="Piyan List", color=0x4c9ce0)
+    embedVar.add_field(name="No.", value=num, inline=True)
     embedVar.add_field(name="關鍵字", value=replyKey, inline=True)
     #embedVar.add_field(name="回傳值", value=replyValue, inline=True)
 
     return embedVar
 
-def reply(message):
-    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/reply_dictionary', f'{message.guild.id}/dictionary.json')
-    try:
-        return (load(dictPath)).get(message.content)[0]
-    except:
-        return None
-    
+def mentioned_reply(message):
+    if message.author.id in VIP:    # VIP 低聲下氣
+        ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_VIP.json'))
+        message.reply(ans[randrange(len(ans))])
+    else:   # 非VIP 抽獎模式
+        ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_ans.json'))
+        mentionBot(message, ans[randrange(len(ans))])
+
 async def record_dm(message):
-    if isinstance(message.channel, discord.DMChannel):
+    if isinstance(message.channel, discord.DMChannel) and message.author.id != 1043082295764078652:
         t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"{t} | {message.author}: {message.content}")
         DM_path = Path('C:\\Users\\jtn91\\OneDrive\\桌面\\Piyan\\Chat\\DM', f'{message.author.id}.txt')
@@ -120,8 +144,20 @@ async def record_guild(message):
     return
 
 def responder(m):
-    dictPath = Path('C:\\Users\\jtn91\\OneDrive\\桌面\\Piyan\\Data\\reply_dictionary', f'{m.guild.id}/dictionary.json')
+    dictPath = Path('C:\\Users\\jtn91\\OneDrive\\桌面\\Piyan\\Data\\guild_data', f'{m.guild.id}/dictionary.json')
     try:
         return (load(dictPath)).get(m.content)[0]
     except:
         return None
+    
+def say(interaction, text):
+    say_path = Path(f'C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data/{interaction.guild.id}/say.txt')
+    say_path.parent.mkdir(parents=True, exist_ok=True)
+    t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(say_path, 'a', encoding='utf-8') as f:
+        f.write(f"{t} | p5yan | {interaction.user}: {text}\n")
+    return
+
+def VIP(vip_list):
+    vip_path = Path(f'C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/{vip_list}.json')
+    return load(vip_path)
