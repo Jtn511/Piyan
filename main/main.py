@@ -24,6 +24,8 @@ async def on_ready():
     try:
         synced = await bot.tree.sync()
         print(f'現在有 {len(synced)} 個指令!')
+        for i in range(len(synced)):
+            print(synced[i].name)
     except Exception as e:
         print(e)
 
@@ -33,11 +35,14 @@ async def on_message(message):
         await Piyan.record_guild(message)
     else:
         await Piyan.record_dm(message)
-        
+    
+    if message.type.value == 20:
+        if Piyan.avatar_delete(message):
+            await message.delete()
     if message.author.bot or not message.guild:
         return
     
-    VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
+    VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/member_list/VIP.json'))
     if str(bot.user.id) in message.content: # 被標記
         if message.author.id in VIP:    # VIP 低聲下氣
             ans = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/mention_ans/mention_VIP.json'))
@@ -57,7 +62,7 @@ async def on_raw_reaction_add(reaction):
         message = await channel.fetch_message(reaction.message_id)  # 這裡替換成你要刪除的訊息 ID
 
         await message.delete()
-        print(f'{message.guild}_{message.channel} | {message.author}: {message.content} -> removed')
+        print(f'{message.guild}_{message.channel} | {message.author}: {message.content} -> removed by {reaction.member}')
 
 
 @bot.tree.command(name='p0yan功能', description='查看Piyan的功能列表')
@@ -82,38 +87,41 @@ async def remove_reply(interaction: discord.Interaction, key: str):
     await interaction.response.send_message(Piyan.remove_reply(interaction, key))
 
 
-@bot.tree.command(name='p4yan查詢', description='看看是哪個王八蛋設的')
+@bot.tree.command(name='p4yan查設定人', description='看看是哪個王八蛋設的')
 @app_commands.describe(key= '輸入你要查的關鍵字')
 async def author_search(interaction: discord.Interaction, key: str):
     await interaction.response.send_message(Piyan.author_search(interaction, key))
 
 
-@bot.tree.command(name='p5yan關鍵字清單', description='太多了所以不想放回覆內容 好奇的自己試試就知道了')
+@bot.tree.command(name='p5yan查數量', description='看看他到底設了多少')
+@app_commands.describe(author= '輸入你要查的關鍵字')
+async def amount_search(interaction: discord.Interaction, author: discord.Member):
+    await interaction.response.send_message(Piyan.amount_search(interaction.guild.id, author))
+
+
+@bot.tree.command(name='p6yan關鍵字清單', description='太多了所以不想放回覆內容 好奇的自己試試就知道了')
 async def list(interaction: discord.Interaction):
     try:
         await interaction.response.send_message(embed=Piyan.key_list(interaction), ephemeral=True)
     except:
-        await interaction.response.send_message('字太多了我還沒寫解決方案ㄟ')
+        await interaction.response.send_message('字太多了我還沒寫解決方案ㄟ', ephemeral=True)
 
 
-@bot.tree.command(name='p6yan代言人', description='幫你大聲說出來!')
+@bot.tree.command(name='p7yan轟炸機', description='五次轟炸尋人機')
+@app_commands.describe(target= '炸誰?', text= '轟炸內容?')
+async def bomb(interaction: discord.Interaction, target: discord.Member, text: str):
+    await interaction.response.send_message(f'{interaction.user.mention} 對 {target.mention} 使用轟炸')
+    for i in range(5):
+        await interaction.channel.send(f'{target.mention} {text}')
+    await interaction.channel.send('你家炸了 快出來')
+
+
+@bot.tree.command(name='p8yan代言人', description='幫你大聲說出來!')
 @app_commands.describe(say= '講出來')
 async def say(interaction: discord.Interaction, say: str):
     Piyan.say(interaction, say)
     await interaction.channel.send(say)
     await interaction.response.send_message('俗辣不敢自己講喔', ephemeral= True)
-
-
-@bot.tree.command(name='p7yan轟炸機', description='轟炸尋人機 不要超過五次 會太吵')
-@app_commands.describe(target= '炸誰?', times= '炸幾次?')
-async def bomb(interaction: discord.Interaction, target: discord.Member, times: int):
-    await interaction.response.send_message(f'{interaction.user.mention} 對 {target.mention} 使用{times}次轟炸')
-    if times <= 5:
-        for i in range(times):
-            await interaction.channel.send(target.mention)
-        await interaction.channel.send('你家炸了 快出來')
-    else:
-        await interaction.channel.send('太貪心了吧 我不炸')
 
 
 token = os.getenv('DISCORD_BOT_TOKEN')

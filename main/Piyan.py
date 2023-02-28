@@ -18,7 +18,7 @@ def dump(data, path):
 
 def add_reply(interaction, key, reply):
     cant_add_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/cant_add/cant_add.json'))
-    black_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/black_list.json'))
+    black_list = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/member_list/black_list.json'))
     if key in cant_add_list:
         print(f'{interaction.user.name} cannot add {key} to {reply}')
         return '笑死 還想改啊'
@@ -45,7 +45,7 @@ def add_reply(interaction, key, reply):
     return f'好ㄌ:\t{key} >>> {reply}'
 
 def remove_reply(interaction, key):
-    VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/VIP.json'))
+    VIP = load(Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/member_list/VIP.json'))
     dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{interaction.guild.id}/dictionary.json')
     try:
         dictionary = load(dictPath)
@@ -140,7 +140,7 @@ async def record_guild(message):
     t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     with guild_path.open('a', encoding='utf-8') as f:
-        f.write(f"{t} | {message.author}: {message.content}\n")
+        f.write(f"{t} | {message.author}: {message.content}".replace('\n', f'\n                    | {message.author}: ')+"\n")
     return
 
 def responder(m):
@@ -159,5 +159,73 @@ def say(interaction, text):
     return
 
 def VIP(vip_list):
-    vip_path = Path(f'C:/Users/jtn91/OneDrive/桌面/Piyan/Data/VIP/{vip_list}.json')
+    vip_path = Path(f'C:/Users/jtn91/OneDrive/桌面/Piyan/Data/member_list/{vip_list}.json')
     return load(vip_path)
+
+def create_embed():
+# 建立embed物件
+    embed = discord.Embed(
+        title='皮炎公告',
+        description='沒啥 純粹試試看',
+        color=discord.Color.blue(), # 顏色
+        url='https://www.google.com/', # 嵌入連結
+    )
+
+    # 增加作者
+    embed.set_author(
+        name='Piyan#0765',
+        url='https://discord.com/api/oauth2/authorize?client_id=1043082295764078652&permissions=8&scope=bot',
+        icon_url='https://imgur.com/46ScKGF.jpg'
+    )
+
+    # 增加縮圖
+    embed.set_thumbnail(
+        url='https://imgur.com/9f3yb2j.jpg'
+    )
+    
+    # 增加欄位
+    embed.add_field(
+        name='欄位標題',
+        value='欄位內容',
+        inline=True # 是否為行內欄位
+    )
+
+    # 增加圖片
+    embed.set_image(
+        url='https://imgur.com/akGEDC0.jpg'
+    )
+
+    # 增加尾註
+    embed.set_footer(
+        text='--Piyan',
+        icon_url='https://imgur.com/KiT5Wbh.jpg'
+    )
+
+    # 增加時間戳記
+    embed.timestamp = datetime.datetime.now()
+
+    return embed
+
+def amount_search(guildID, author):
+    dictPath = Path('C:/Users/jtn91/OneDrive/桌面/Piyan/Data/guild_data', f'{guildID}/dictionary.json')
+    dict = load(dictPath)
+    amount = 0
+    for key in dict:
+        try:
+            if dict[key][2] == author.id:
+                amount += 1
+        except:
+            dict[key] += ['', '']
+
+    return f'{author.mention}在piyan裡面設了 {amount} 次'
+
+def avatar_delete(message):
+    avatar = VIP('avatar')
+    if message.author.id == 172002275412279296:
+        return 1
+    try:
+        for mem in avatar:
+            if f'{mem}' in f'{message.embeds[0].to_dict()}':
+                return 1
+    except IndexError:
+        return None
