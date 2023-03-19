@@ -142,6 +142,6 @@ async def say(interaction: discord.Interaction, say: str):
   await interaction.response.send_message('俗辣不敢自己講喔', ephemeral=True)
 
 
-token = "MTA0MzA4MjI5NTc2NDA3ODY1Mg.GuMRM8.pGI_Meh-BCox1DTDdnbq_eA-yLwIO0YNYSoyyE"
+token = os.getenv("DISCORD_BOT_TOKEN")
 keep_alive.keep_alive()
 bot.run(token)
